@@ -1,0 +1,155 @@
+---
+title: "崔璇-20377099-1"
+author: "崔璇"
+date: "2023/4/4"
+documentclass: ctexart
+output: 
+  rticles::ctex:
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+# lab 5
+
+```{r}
+fun<-function(expr,x){
+  x<-x
+  df<- deriv(expr,"x",function.arg = TRUE)
+  fgrad<-attr(df(x),'gradient')[1,]
+  return(list(result=df(x)[1],fgrad=fgrad))
+}
+newton.root<-function(expr,initial_value,tol=1e-9,max.iter = 100){
+  x<-initial_value
+  cat(paste0("初始值：x = ", x, "\n"))
+  num=0
+  xs <- list()
+  xs[[num + 1]] <- x
+  f<-fun(expr,x)
+  while((abs(f$result) > tol) && (num < max.iter)){
+    x<-x-f$result/f$fgrad
+    f<-fun(expr,x)
+    num<-num+1
+    xs[[num+1]] <- x
+    cat(paste0("迭代第", num, "次：x = ", x, "\n"))
+    
+  }
+  if (abs(f$result) > tol) {
+    cat("算法无法收敛\n")
+    return(NULL)
+  } 
+  else {
+    cat("算法收敛\n")
+    return(xs)
+  }
+}
+cat("求x^2-5的根\n")
+f1<-expression(x^2-5)
+roots1<- unlist(newton.root(f1, 5))
+cat("\n")
+cat("求(x)^(1/2)的根\n")
+f2<-expression((x)^(1/2))
+cat("\n")
+print("求x*exp(-x^2)-0.4*(exp(x)+1)^(-1)-0.2的根\n")
+f3<-expression(x*exp(-x^2)-0.4*(exp(x)+1)^(-1)-0.2)
+roots3<-unlist(newton.root(f3,0.5))
+roots4<-unlist(newton.root(f3,0.6))
+cat("\n")
+cat("求x^3-2*x^2-11*x+12的根")
+f4<-expression(x^3-2*x^2-11*x+12)
+roots5<-unlist(newton.root(f4,2.35287527))
+roots6<-unlist(newton.root(f4,2.35284172))
+cat("\n")
+cat("求2*x^3+3*x^2+5的根")
+f5<-expression(2*x^3+3*x^2+5)
+roots7<-unlist(newton.root(f5,0.5))
+
+  
+```
+
+```{r}
+print("求x*exp(-x^2)-0.4*(exp(x)+1)^(-1)-0.2的根\n")
+f3<-expression(x*exp(-x^2)-0.4*(exp(x)+1)^(-1)-0.2)
+roots3<-unlist(newton.root(f3,0.5))
+roots4<-unlist(newton.root(f3,0.6))
+cat("\n")
+cat("求x^3-2*x^2-11*x+12的根")
+f4<-expression(x^3-2*x^2-11*x+12)
+roots5<-unlist(newton.root(f4,2.35287527))
+roots6<-unlist(newton.root(f4,2.35284172))
+cat("\n")
+cat("求2*x^3+3*x^2+5的根")
+f5<-expression(2*x^3+3*x^2+5)
+roots7<-unlist(newton.root(f5,0.5))
+
+  
+
+```
+
+![](images/2-1.png)
+
+![](images/1-2.png)
+
+![](images/1-1.png)
+
+![](images/2-2.png)
+
+从错误中可以学到牛顿算法很依赖初始值。比如f(x)=(x)\^(1/2)的解是0，但迭代并没有终止在x=0,再比如f(x)=2\*x\^3+3\*x\^2+5,如果设置初始值为0则无法进行迭代，因为无法满足迭代的判断条件。
+
+# lab 5 continuted
+
+f(x)=x\^4
+
+通过手动求导得其导函数为4\*x\^3
+
+```{r}
+f6<-expression(4*x^3)
+roots9<-unlist(newton.root(f6,2))
+roots10<-unlist(newton.root(f6,-2))
+
+```
+
+题目要求是求x\^4的最大值，而用其导函数为0只能求得极值而非极大值，根据结果可知，这种方法求得的是该函数的最小值。所以体现了牛顿算法的局限性，该算法不能确定导数接近0的点是目标函数的极大值还是极小值。
+
+# Lab 6
+
+```{r}
+ff<-expression(x^2 - x*y + y^2 + exp(y))
+dd<-function(expr,x,y){
+  ddf<-deriv(expr, c('x', 'y'), func = TRUE,hessian = TRUE)
+  ddx<-ddf(x,y)
+  fgrad<-attr(ddx,'gradient')[1,]
+  fhess<-attr(ddx,'hessian')[1,,]
+  return(list(result=ddx[1],fgrad = fgrad, fhess = fhess))
+}
+newton<-function(expr,initial_x,initial_y,tol=0.0001,max.iter =100){
+  x<-initial_x
+  y<-initial_y
+  cat(paste0("初始值：x = ", x,"  y = ",y, "\n"))
+  n=0
+  xs <- list()
+  xs[[n+1]] <- c(x,y)
+  fx<-dd(expr,x,y)
+  while(max(abs(fx$result) > tol) && (n< max.iter)){
+    v<-c(x,y)-solve(fx$fhess, fx$fgrad)
+    x<-v[1]
+    y<-v[2]
+    fx<-dd(expr,x,y)
+    n<-n+1
+    xs[[n+1]] <- v
+    cat(paste0("迭代第", n, "次：x = ", x,"  y = ",y, "\n"))
+    
+  }
+  if (max(abs(fx$fgrad)) > tol) {
+    cat("算法无法收敛\n")
+    return(NULL)
+  } 
+  else {
+    cat("算法收敛\n")
+    return(xs)
+  }
+}
+roots <- unlist(newton(ff,-1,-1))
+
+
+
+```

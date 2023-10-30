@@ -1,0 +1,110 @@
+---
+title: "lab-7"
+author: "崔璇"
+date: "2023/4/9"
+documentclass: ctexart
+output: 
+  rticles::ctex:
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+# lab 7
+
+## 1
+
+```{r}
+fun<-function(v){
+  x<-v[1]
+  y<-v[2]
+  return(x^2+y^2)
+}
+NelderMead <- function(X, f, alpha = 1, gamma = 2, lo = 0.5, 
+                       mu = 0.5, eps = 10^(-9), max.loop = 100){
+  
+  num<-0 ##记录循环的次数
+  area.hist <- vector(mode = "numeric", length = 0)#记录单纯型的体积
+  area.hist[1] <- 1 
+  while ((num<max.loop)&(area.hist[num+1]> eps)) {
+    n<-length(X) ##顶点的个数
+    num<-num+1
+    ##X为列表，f为函数
+    ##对每个顶点计算函数值并排序
+    fx<-c() ##用以保存各个顶点的函数值
+    for(i in 1:n){
+      fx[i]<-f(X[[i]])
+    }
+    X<-X[rank(fx)] ##将X变为按照函数值大小排列的顺序
+    fx<-sort(fx)  ##对函数值进行排序
+    
+    ##计算质心
+    x0<-0
+    N=n-1
+    for(j in 1:N){
+      x0<-x0+X[[j]]/N
+    }
+    ##找到反射点并计算反射点处的函数值
+    xr<-x0+alpha*(x0-X[[n]])
+    fx.xr<-f(xr)
+    ##进行判断
+    if((fx.xr<fx[n-1])& fx.xr>=fx[1]){
+      X[[n]]<-xr
+      
+    }
+    else if(fx.xr<fx[1]){
+      xe<-x0+gamma*(xr-x0)
+      fx.xe<-f(xe)
+      if(fx.xe<fx.xr){
+        X[[n]]<-xe
+      }else{
+        X[[n]]<-xr
+      }
+    }
+    else if(fx.xr>=fx[n-1]){
+      xc<-x0+lo*(X[[n]]-x0)
+      fx.xc<-f(xc)
+      if(fx.xc<fx[n]){
+        X[[n]]<-xc
+      }else{
+        for(k in 1:n){
+          X[[k]]<-X[[1]]+mu*(X[[k]]-X[[1]])
+        }
+      }
+      
+    }
+    ##计算单纯型的体积
+    
+    A <- matrix(0, ncol =N, nrow = N,byrow = TRUE)
+    for (t in 1:N) 
+    {
+      A[t, ] <- X[[t]] -X[[n]]
+    }
+    area.hist[num+1]<-abs(0.5*det(A))
+  }
+  return(list(X,num,area.hist[num+1])) ##返回优化的结果、优化的次数和单纯型的体积
+}
+X=list(c(1,1),c(1,2),c(2,2))
+out <- NelderMead(X, fun)
+out
+
+
+```
+
+## 2
+
+```{r}
+beta0 <- 1
+beta1 <- 3
+sigma <- 1
+n <- 1000
+x <- rnorm(n, 3, 1)
+y <- beta0 + x * beta1 + rnorm(n, mean = 0, sd = sigma)
+f <- function(v){
+    b0 <- v[1]
+    b1 <- v[2]
+    return(sum(y - b0 - b1 * x) ^ 2)
+}
+L<-list(c(-1,1),c(0,1),c(2,0))
+re<-NelderMead(L,f)
+re
+```
