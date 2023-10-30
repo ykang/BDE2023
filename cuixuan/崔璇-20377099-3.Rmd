@@ -1,0 +1,140 @@
+---
+title: "lab 8"
+author: "崔璇"
+date: "2023/4/24"
+documentclass: ctexart
+geometry: "left=2.5cm,right=2cm,top=3cm,bottom=2.5cm"
+output:
+  rticles::ctex:
+  fig_caption: yes
+number_sections: yes
+toc: yes
+classoption: "hyperref,"
+---
+```{r}
+sgd.logisticReg <- function(X, y, beta.init, alpha = 0.5, n.samples = 1, tol = 1e-5, max.iter = 100)
+{
+    n <- length(y)
+    beta.old <- beta.init
+    J <- betas <- list()
+    sto.sample <- sample(1:n, n.samples, replace = TRUE)
+    # sto.sample <- 1:n
+    betas[[1]] <- beta.old
+    J[[1]] <- sgd.logisticReg.cost(X, y, beta.old)
+    beta.new <- beta.old -
+      alpha * sgd.logisticReg.cost.grad(X[sto.sample, ],
+                                        y[sto.sample],
+                                        beta.old)
+    betas[[2]] <- beta.new
+    J[[2]] <- sgd.logisticReg.cost(X, y, beta.new)
+    iter <- 0
+    n.best <- 0
+    while ((abs(sgd.logisticReg.cost(X, y, beta.new) -
+                sgd.logisticReg.cost(X, y, beta.old)) > tol) &
+           (iter + 2 < max.iter))
+      {
+        beta.old <- beta.new
+        sto.sample <- sample(1:n, n.samples, replace = TRUE)
+        beta.new <- beta.old -
+          alpha * sgd.logisticReg.cost.grad(X[sto.sample, ],
+                                            y[sto.sample],
+                                            beta.old)
+        iter <- iter + 1
+        betas[[iter + 2]] <- beta.new
+        J[[iter + 2]] <- sgd.logisticReg.cost(X, y, beta.new)
+    }
+    if (abs(sgd.logisticReg.cost(X, y, beta.new) -
+            sgd.logisticReg.cost(X, y, beta.old)) > tol){
+      cat('算法无法收敛。 \n')
+    } else{
+      cat('算法收敛\n')
+      cat('共迭代',iter + 1,'次','\n')
+      # cat('系数估计为：', beta.new, '\n')
+      return(list(coef = betas,cost = J, niter = iter + 1))
+    }
+}
+
+##定义损失函数
+sgd.logisticReg.cost <- function(X, y, beta){
+  n <- length(y)
+  if (!is.matrix(X)){
+    X <- matrix(X, nrow = 1)
+  }
+  p <- 1/(1+exp(-X %*% beta))
+  loss <- -sum(y*log(p)+(1-y)*log(1-p))/n
+  return(loss)
+}
+## Calculate the gradient
+sgd.logisticReg.cost.grad <- function(X, y, beta){
+  n <- length(y)
+  if (!is.matrix(X)){
+    X <- matrix(X, nrow = 1)
+  }
+  t(X)%*%(1/(1+exp(-X%*%beta)) - y)/n
+}
+
+
+##利用R自带的鸢尾花数据进行试验
+
+X<-iris[1:100,1:4]
+X<-as.matrix(X)
+y<-iris[1:100,5]
+y<-as.matrix(y)
+y1<-matrix(ncol=1)
+num<-1
+for(i in y)
+{
+  if(i=="setosa")
+  {
+    y1[num]=0
+  }
+  if(i=="versicolor"){
+    y1[num]=1
+  }
+  num<-num+1
+}
+L<-cbind(X,y1)
+##训练集
+s<-sample(1:100, 70, replace = FALSE)
+
+X_train<-L[s,1:4]
+y_train<-L[s,5]
+
+beta.init <- c(0,0,0,0)
+
+L<-iris[1:100,]
+op<-sample(1:100,70,replace = FALSE)
+X_1<-as.matrix(L[op,1:4])
+y<-as.matrix(L[,5])
+y_1<-c()
+num<-1
+for(i in y)
+{
+  if(i=="setosa")
+  {
+    y_1[num]=0
+  }
+  if(i=="versicolor"){
+    y_1[num]=1
+  }
+  num<-num+1
+}
+y_2<-as.matrix(y_1[op])
+beta.init <- c(0,0,0,0)
+res <- sgd.logisticReg(X_1, y_2,
+                       beta.init, alpha = 0.01,
+                       n.samples = 1,
+                       max.iter = 1000, tol = 1e-6)
+
+plot(1:length(res$cost), res$cost, type = "l",
+     xlab = "Iterations", ylab = "Loss")
+X_test<-as.matrix((L[-op,1:4]))
+y_test<-as.matrix(y_1[-op])
+p <- 1/(1+exp(-(X_test%*%res$coef[[length(res$coef)]])))
+y_predicted <- ifelse(p>=0.5, 1, 0)
+print(paste0("accuracy:", sum(y_predicted==y_test)/30))
+
+
+
+```
+

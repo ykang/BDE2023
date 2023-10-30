@@ -1,0 +1,18 @@
+---
+title: "lab 9"
+author: "崔璇"
+date: "2023/5/1"
+documentclass: ctexart
+output: 
+  rticles::ctex:
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+Say $Y|\theta\sim Poisson(N\theta)$, and$\theta\sim Gamma(a,b)$, find $\hat\theta_{MAP}$.
+
+$\hat\theta_{MAP}=\mathop{argmax}\limits_{\theta}{p(\theta|Y)}\\=\mathop{argmax}\limits_{\theta}{log[f(Y|\theta)]+log[p(\theta)]}\\=\mathop{argmax}\limits_{\theta}{log[\frac{(N\theta)^y}{y!}e^{-N\theta}]+log[\frac{b^a}{\Gamma(a)}\theta^{a-1}e^{-b\theta}]}\\=\mathop{argmax}\limits_{\theta}{ylogN\theta-log{y!}-N\theta+log{\frac{b^a}{\Gamma(a)}}+(a-1)log\theta-b\theta}$
+
+令$F=ylogN\theta-log{y!}-N\theta+log{\frac{b^a}{\Gamma(a)}}+(a-1)log\theta-b\theta$，对$F$中的$\theta$求导: $\frac{\partial{F}}{\partial{\theta}}=\frac{y}{\theta}-N+\frac{a-1}{\theta}-b$
+
+令$\frac{\partial{F}}{\partial{\theta}}=0$，$\theta=\frac{y+a-1}{N+b}$，当$\theta>\frac{y+a-1}{N+b}$时，$\frac{\partial{F}}{\partial{\theta}}<0$;当$\theta<\frac{y+a-1}{N+b}$时，$\frac{\partial{F}}{\partial{\theta}}>0$，即$F$的函数图像先增后减，在$\theta=\frac{y+a-1}{N+b}$时取得最大值，所以$\hat\theta_{MAP}=\frac{y+a-1}{b+N}$
